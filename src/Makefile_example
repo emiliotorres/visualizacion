@@ -1,0 +1,61 @@
+# Create a shared library
+# R CMD SHLIB  pr1.cpp pr2.cpp pr3.cpp -o paquete.so && R CMD BATCH
+# R CMD SHLIB preceq_uniform.cpp -o paquete.so && R CMD BATCH test.r
+# Name of the shared library: TARGET.so
+SHAREDLIB := paquete
+TESTR := test01.R
+
+CC= $(shell $(R_HOME)/bin/R CMD config CC)
+CFLAGSDEBUG = -g -O0 -Wall -pipe -pedantic
+CFLAGSNORMAL = -g -O2 -Wall -pipe -pedantic
+
+RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config --cppflags)# -I/usr/share/R/include
+RLDFLAGS := 		$(shell $(R_HOME)/bin/R CMD config --ldflags) # -Wl,-Bsymbolic-functions -Wl,-z,relro
+RBLAS := 		$(shell $(R_HOME)/bin/R CMD config BLAS_LIBS)
+RLAPACK := 		$(shell $(R_HOME)/bin/R CMD config LAPACK_LIBS)
+RDYLIB_EXT := $(shell $(R_HOME)/bin/R CMD config DYLIB_EXT) # extension of the shared library .so
+RDYLIB_LDFLAGS := $(shell $(R_HOME)/bin/R CMD config DYLIB_LDFLAGS)  #-shared -fopenmp
+PICFLAG :=-fpic # when making a shared object; recompile con -fPIC
+OPENMPFLAG :=-fopenmp
+LDLIBS := 	$(RLDFLAGS) $(RRPATH) $(RBLAS) $(RLAPACK) $(RCPPLIBS)  $(RDYLIB_LDFLAGS)
+PATHHASHTABLE :=/home/emilio/R/x86_64-pc-linux-gnu-library/4.3/hashtable/libs
+
+CXXSHLIB :=  $(R_HOME)/bin/R CMD SHLIB
+
+R_HOME := $(shell R RHOME)
+R_OPTS := --vanilla --silent
+R_VALGRIND := -d "valgrind" --debugger-args="--tool=memcheck" ## use ~/.valgrindrc See https://www.maths.ed.ac.uk/~swood34/RCdebug/RCdebug.html
+
+.PHONY: default valgrind leak all clean
+
+default: $(TESTR)
+all: default sharedlib
+
+OBJECTSCC =  $(patsubst %.c, %.o, $(wildcard *.c))
+HEADERS = $(wildcard *.h)
+
+%.o: %.c $(HEADERS)
+	$(CC) $(CFLAGSNORMAL) $(RCPPFLAGS) $(PICFLAG) $(OPENMPFLAG) -c $< -o $@
+
+.PRECIOUS: $(SHAREDLIB) $(TESTR) $(OBJECTSCC)
+
+$(SHAREDLIB): $(OBJECTSCC)
+	$(CXXSHLIB) $(OBJECTSCC) $(PATHHASHTABLE)/hashtable.so -Wl,-rpath,$(PATHHASHTABLE) -Wl,--verbose -o $(SHAREDLIB)$(RDYLIB_EXT)
+
+
+
+$(TESTR): $(SHAREDLIB)
+	R CMD BATCH $(R_OPTS) $(TESTR)
+
+valgrind: $(SHAREDLIB)
+	R CMD BATCH $(R_VALGRIND) $(R_OPTS) $(TESTR)
+
+leak: $(SHAREDLIB)
+	R  --vanilla  -d "valgrind" --silent --debugger-args="--tool=memcheck --leak-check=full --show-reachable=yes --track-origins=yes --log-file=test01.Rout" -f $(TESTR)
+
+lsp:
+	make clean && bear -- make
+
+clean:
+	rm -f $(SHAREDLIB)$(RDYLIB_EXT) $(OBJECTSCC) $(TESTR)out
+

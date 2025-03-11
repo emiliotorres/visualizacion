@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+
+# R compilers
+CC=`${R_HOME}/bin/R CMD config CC`
+CFLAGS=`${R_HOME}/bin/R CMD config CFLAGS`
+# compiler and flags to 'cc' file
+echo "CC=${CC}" > inst/cc
+echo "CFLAGS=${CFLAGS} -O2" >> inst/cc
+
+# gcc compiler info to output
+case $CC in gcc*)
+  GCCV=`${CC} -dumpfullversion -dumpversion`
+  echo "$CC $GCCV"
+esac
+
+  sed -e "s|@openmp_cflags@||" src/Makevars.in > src/Makevars

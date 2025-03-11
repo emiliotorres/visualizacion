@@ -1,0 +1,15 @@
+Package: visualizacion
+Version: 0.0.1
+Title: Animated slide
+Authors@R: c(
+  person("Emilio","Torres Manzanera", role=c("aut","cre"), email="torres@uniovi.es"),
+  person("Alejandro", "Torres García", role = "ctb", email = "iskandertorres23@gmail.com"))
+Depends: R (>= 4.1.0)
+Imports: methods
+Description: Generate the video for the contest https://github.com/grupoRasturias/dataviz-contest-2025/blob/main/bases_es.md.
+License: GPL-3
+NeedsCompilation: yes
+Author: Emilio Torres Manzanera [aut, cre]
+Maintainer: Emilio Torres Manzanera <torres@uniovi.es>
+Encoding: UTF-8
+RoxygenNote: 7.3.2

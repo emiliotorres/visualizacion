@@ -1,0 +1,3 @@
+all: $(SHLIB)
+	if [ "$(SHLIB)" != "visualizacion$(SHLIB_EXT)" ]; then mv $(SHLIB) visualizacion$(SHLIB_EXT); fi
+	if [ "$(OS)" != "Windows_NT" ] && [ `uname -s` = 'Darwin' ]; then install_name_tool -id visualizacion$(SHLIB_EXT) visualizacion$(SHLIB_EXT); fi
