@@ -522,7 +522,7 @@ int findpos(int index, const BoundingBox* boxes, int numBoxes){
   for(int k=0; k< numBoxes; k++){
     if(index==boxes[k].index) return boxes[index].pos;
   }
-  Rf_error("Index %d not exists!");
+  Rf_error("Index %d not exists!",index);
   return 0;
 }
 

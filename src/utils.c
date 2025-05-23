@@ -1,6 +1,6 @@
 // Emilio Torres Manzanera
 // University of Oviedo
-// Time-stamp: <2025-01-15 19:39 emilio on emilio-despacho>
+// Time-stamp: <2025-05-22 10:58 emilio on emilio-despacho>
 // ============================================================
 
 #include "matchmatrix.h"
@@ -131,7 +131,9 @@ SEXP convert_vector_Rrows_to_Crows(SEXP x_s, SEXP Rrows_s){
 		result[count++] = i;
 		}
 	}
-	SETLENGTH(result_s,count);
+	//	SETLENGTH(result_s,count);
+
+	Rf_xlengthgets(result_s, count);
 	UNPROTECT(protecti);
 	return result_s;
   };

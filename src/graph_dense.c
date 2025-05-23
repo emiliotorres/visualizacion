@@ -404,7 +404,7 @@ int insertDirectionInAdjacencyMatrix(int from, int to, Direction direction, cons
 	snprintf(newmessage,1000,"Upadating an adjacent matrix of dimension %d: pos %d and pos %d.\n",numBoxes,from, to);
 	strcat(message,newmessage);
 	if(DEBUGGING){
-	  Rf_error(newmessage);//"Upadating an adjacent matrix of dimension %d: pos %d and pos %d.\n",numBoxes,from, to);
+	  Rf_error("%s",newmessage);//"Upadating an adjacent matrix of dimension %d: pos %d and pos %d.\n",numBoxes,from, to);
 	} else {
 	  return 0;
 	}
@@ -418,7 +418,7 @@ int insertDirectionInAdjacencyMatrix(int from, int to, Direction direction, cons
 			a, from, to, directionToString(direction));
 	strcat(message,newmessage);
 	if(DEBUGGING){
-	  Rf_error(newmessage);//"Upadating an adjacent matrix of dimension %d: pos %d and pos %d.\n",numBoxes,from, to);
+	  Rf_error("%s",newmessage);//"Upadating an adjacent matrix of dimension %d: pos %d and pos %d.\n",numBoxes,from, to);
 	} else {
 	  return 0;
 	}
@@ -433,7 +433,7 @@ int insertDirectionInAdjacencyMatrix(int from, int to, Direction direction, cons
 			);
 	strcat(message,newmessage);
 	if(DEBUGGING){
-	  Rf_error(newmessage);//"Upadating an adjacent matrix of dimension %d: pos %d and pos %d.\n",numBoxes,from, to);
+	  Rf_error("%s",newmessage);//"Upadating an adjacent matrix of dimension %d: pos %d and pos %d.\n",numBoxes,from, to);
 	} else {
 	  return 0;
 	}
@@ -446,7 +446,7 @@ int insertDirectionInAdjacencyMatrix(int from, int to, Direction direction, cons
 			a,b,directionToString(prev),directionToString(direction));
 	strcat(message,newmessage);
 	if(DEBUGGING){
-	  Rf_error(newmessage);//"Upadating an adjacent matrix of dimension %d: pos %d and pos %d.\n",numBoxes,from, to);
+	  Rf_error("%s",newmessage);//"Upadating an adjacent matrix of dimension %d: pos %d and pos %d.\n",numBoxes,from, to);
 	} else {
 	  return 0;
 	}
@@ -475,7 +475,7 @@ int updateAdjacencyMatrix(int from, int to, Direction direction, const BoundingB
   int check= insertDirectionInAdjacencyMatrix(from, to, direction, boxes,  tempadj, numBoxes,message,0);
   if(!check){
 
-	if(DEBUGGING) Rprintf(message);
+	if(DEBUGGING) Rprintf("%s",message);
 	R_Free(message);
 	R_Free(tempadj);
 	return 0;
@@ -501,7 +501,7 @@ int updateAdjacencyMatrix(int from, int to, Direction direction, const BoundingB
 	
   }
 
-  if(verbose) Rprintf(message);
+  if(verbose) Rprintf("%s",message);
 
   R_Free(message);
   return  check;

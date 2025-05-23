@@ -18,10 +18,10 @@ SEXP get_list_of_rows_with_same_values_in_this_matrix_all_rows(SEXP x_s, SEXP id
     K++;
   }
   R_xlen_t count = 0;
-  int *restrict h = (int *)Calloc(M, int);
+  int *restrict h = (int *)R_Calloc(M, int);
   // int *restrict pans = (int *)Calloc(nrowsx, int);
-  int *restrict groupfirstposition = (int *)Calloc(nrowsx, int);
-  int *restrict sizeofthegroup = (int *)Calloc(nrowsx, int);
+  int *restrict groupfirstposition = (int *)R_Calloc(nrowsx, int);
+  int *restrict sizeofthegroup = (int *)R_Calloc(nrowsx, int);
   size_t id = 0;
 
   switch (TYPEOF(x_s)) {
@@ -94,32 +94,69 @@ SEXP get_list_of_rows_with_same_values_in_this_matrix_all_rows(SEXP x_s, SEXP id
     }
     break;
   }
+  /* case STRSXP: { */
+  /*   const SEXP *restrict x = STRING_PTR(x_s); */
+  /*   for (R_xlen_t i = 0; i < nrowsx; ++i) { */
+  /*     R_xlen_t key = 0; */
+  /*     for (R_xlen_t j = 0; j < ncols; ++j) { */
+  /*       key ^= HASH(((intptr_t)x[i + idcols[j] * nrowsx] & 0xffffffff), K) * */
+  /*              97 * (j + 1); */
+  /*     } */
+  /*     id = HASH(key, K); */
+  /*     while (h[id]) { */
+  /*       for (R_xlen_t j = 0; j < ncols; ++j) { */
+  /*         if (x[h[id] - 1 + idcols[j] * nrowsx] != */
+  /*             x[i + idcols[j] * nrowsx]) { */
+  /*           goto labelms1; // # nocov */
+  /*         } */
+  /*       } */
+  /*       goto labelms2; */
+  /*     labelms1:; // # nocov */
+  /*       id++; */
+  /*       id %= M; // # nocov */
+  /*     } */
+  /*     h[id] = (int)i + 1; */
+  /*     count++; */
+  /*   labelms2:; */
+  /*     groupfirstposition[i] = h[id] - 1; // in C format 0,1,2,3 */
+  /*     sizeofthegroup[h[id] - 1]++; // el tamano del grupo de esa primera fila de */
+  /*   } */
+  /*   break; */
+  /* } */
+
+
   case STRSXP: {
-    const SEXP *restrict x = STRING_PTR(x_s);
+    // Get pointers to the character data using API-compliant methods
+	//    const char **restrict x = (const char **)STRING_ELT(x_s, 0);
     for (R_xlen_t i = 0; i < nrowsx; ++i) {
-      R_xlen_t key = 0;
-      for (R_xlen_t j = 0; j < ncols; ++j) {
-        key ^= HASH(((intptr_t)x[i + idcols[j] * nrowsx] & 0xffffffff), K) *
-               97 * (j + 1);
-      }
-      id = HASH(key, K);
-      while (h[id]) {
-        for (R_xlen_t j = 0; j < ncols; ++j) {
-          if (x[h[id] - 1 + idcols[j] * nrowsx] !=
-              x[i + idcols[j] * nrowsx]) {
-            goto labelms1; // # nocov
-          }
-        }
-        goto labelms2;
-      labelms1:; // # nocov
-        id++;
-        id %= M; // # nocov
-      }
-      h[id] = (int)i + 1;
-      count++;
+	  R_xlen_t key = 0;
+	  for (R_xlen_t j = 0; j < ncols; ++j) {
+		// Get the string element from x_s using the calculated index
+		SEXP str_elem = STRING_ELT(x_s, i + idcols[j] * nrowsx);
+		// Hash the string element
+		key ^= HASH(((intptr_t)CHAR(str_elem)[0] & 0xffffffff), K) * 97 * (j + 1);
+	  }
+	  id = HASH(key, K);
+	  while (h[id]) {
+		for (R_xlen_t j = 0; j < ncols; ++j) {
+		  // Get the string elements for comparison
+		  SEXP str_elem1 = STRING_ELT(x_s, h[id] - 1 + idcols[j] * nrowsx);
+		  SEXP str_elem2 = STRING_ELT(x_s, i + idcols[j] * nrowsx);
+		  // Compare the strings
+		  if (strcmp(CHAR(str_elem1), CHAR(str_elem2)) != 0) {
+			goto labelms1; // # nocov
+		  }
+		}
+		goto labelms2;
+	  labelms1:; // # nocov
+		id++;
+		id %= M; // # nocov
+	  }
+	  h[id] = (int)i + 1;
+	  count++;
     labelms2:;
-      groupfirstposition[i] = h[id] - 1; // in C format 0,1,2,3
-      sizeofthegroup[h[id] - 1]++; // el tamano del grupo de esa primera fila de
+	  groupfirstposition[i] = h[id] - 1; // in C format 0,1,2,3
+	  sizeofthegroup[h[id] - 1]++; // el tamano del grupo de esa primera fila de
     }
     break;
   }
@@ -133,7 +170,7 @@ SEXP get_list_of_rows_with_same_values_in_this_matrix_all_rows(SEXP x_s, SEXP id
   // Una lista de vectores, cada elemento son las positions de cada grupo
   SEXP result_s = PROTECT(Rf_allocVector(VECSXP, count));protecti++;
   int *restrict element_of_result =
-      (int *)Calloc(nrowsx, int); // Element of the list
+      (int *)R_Calloc(nrowsx, int); // Element of the list
   int ngrp = 0;
   OMP_SIMD
   for (int i = 0; i < nrowsx; ++i) {
@@ -167,11 +204,11 @@ SEXP get_list_of_rows_with_same_values_in_this_matrix_all_rows(SEXP x_s, SEXP id
     sizeofthegroup[groupfirstposition[i]]--;
   }
 
-  Free(h);
+  R_Free(h);
   //  Free(pans);
-  Free(groupfirstposition);
-  Free(sizeofthegroup);
-  Free(element_of_result);
+  R_Free(groupfirstposition);
+  R_Free(sizeofthegroup);
+  R_Free(element_of_result);
 
   UNPROTECT(protecti);
   return result_s;
@@ -204,10 +241,10 @@ SEXP get_list_of_rows_with_same_values_in_this_matrix(SEXP x_s, SEXP idrows_s, S
     K++;
   }
   R_xlen_t count = 0;
-  int *restrict h = (int *)Calloc(M, int);
+  int *restrict h = (int *)R_Calloc(M, int);
   // int *restrict pans = (int *)Calloc(nrowsx, int);
-  int *restrict groupfirstposition = (int *)Calloc(nidrows, int);
-  int *restrict sizeofthegroup = (int *)Calloc(nidrows, int);
+  int *restrict groupfirstposition = (int *)R_Calloc(nidrows, int);
+  int *restrict sizeofthegroup = (int *)R_Calloc(nidrows, int);
   size_t id = 0;
 
   switch (TYPEOF(x_s)) {
@@ -281,32 +318,70 @@ SEXP get_list_of_rows_with_same_values_in_this_matrix(SEXP x_s, SEXP idrows_s, S
     }
     break;
   }
+  /* case STRSXP: { */
+  /*   const SEXP *restrict x = STRING_PTR(x_s); */
+  /*   for (R_xlen_t i = 0; i < nidrows; ++i) { */
+  /*     R_xlen_t key = 0; */
+  /*     for (R_xlen_t j = 0; j < ncols; ++j) { */
+  /*       key ^= HASH(((intptr_t)x[idrows[i] + idcols[j] * nrowsx] & 0xffffffff), K) * */
+  /* 		  97 * (j + 1); */
+  /*     } */
+  /*     id = HASH(key, K); */
+  /*     while (h[id]) { */
+  /*       for (R_xlen_t j = 0; j < ncols; ++j) { */
+  /*         if (x[idrows[h[id] - 1] + idcols[j] * nrowsx] != */
+  /*             x[idrows[i] + idcols[j] * nrowsx]) { */
+  /*           goto labelms1; // # nocov */
+  /*         } */
+  /*       } */
+  /*       goto labelms2; */
+  /*     labelms1:; // # nocov */
+  /*       id++; */
+  /*       id %= M; // # nocov */
+  /*     } */
+  /*     h[id] = (int)i+ 1; */
+  /*     count++; */
+  /*   labelms2:; */
+  /*     groupfirstposition[i] = h[id] - 1; // in C format 0,1,2,3 */
+  /*     sizeofthegroup[h[id] - 1]++; // el tamano del grupo de esa primera fila de */
+  /*   } */
+  /*   break; */
+  /* } */
+
+
+
   case STRSXP: {
-    const SEXP *restrict x = STRING_PTR(x_s);
+    // Get pointers to the character data using API-compliant methods
+	// const char **restrict x = (const char **)STRING_ELT(x_s, 0);
     for (R_xlen_t i = 0; i < nidrows; ++i) {
-      R_xlen_t key = 0;
-      for (R_xlen_t j = 0; j < ncols; ++j) {
-        key ^= HASH(((intptr_t)x[idrows[i] + idcols[j] * nrowsx] & 0xffffffff), K) *
-		  97 * (j + 1);
-      }
-      id = HASH(key, K);
-      while (h[id]) {
-        for (R_xlen_t j = 0; j < ncols; ++j) {
-          if (x[idrows[h[id] - 1] + idcols[j] * nrowsx] !=
-              x[idrows[i] + idcols[j] * nrowsx]) {
-            goto labelms1; // # nocov
-          }
-        }
-        goto labelms2;
-      labelms1:; // # nocov
-        id++;
-        id %= M; // # nocov
-      }
-      h[id] = (int)i+ 1;
-      count++;
+	  R_xlen_t key = 0;
+	  for (R_xlen_t j = 0; j < ncols; ++j) {
+		// Get the string element from x_s using the calculated index
+		SEXP str_elem = STRING_ELT(x_s, idrows[i] + idcols[j] * nrowsx);
+		// Hash the string element
+		key ^= HASH(((intptr_t)CHAR(str_elem)[0] & 0xffffffff), K) * 97 * (j + 1);
+	  }
+	  id = HASH(key, K);
+	  while (h[id]) {
+		for (R_xlen_t j = 0; j < ncols; ++j) {
+		  // Get the string elements for comparison
+		  SEXP str_elem1 = STRING_ELT(x_s, idrows[h[id] - 1] + idcols[j] * nrowsx);
+		  SEXP str_elem2 = STRING_ELT(x_s, idrows[i] + idcols[j] * nrowsx);
+		  // Compare the strings
+		  if (strcmp(CHAR(str_elem1), CHAR(str_elem2)) != 0) {
+			goto labelms1; // # nocov
+		  }
+		}
+		goto labelms2;
+	  labelms1:; // # nocov
+		id++;
+		id %= M; // # nocov
+	  }
+	  h[id] = (int)i + 1;
+	  count++;
     labelms2:;
-      groupfirstposition[i] = h[id] - 1; // in C format 0,1,2,3
-      sizeofthegroup[h[id] - 1]++; // el tamano del grupo de esa primera fila de
+	  groupfirstposition[i] = h[id] - 1; // in C format 0,1,2,3
+	  sizeofthegroup[h[id] - 1]++; // el tamano del grupo de esa primera fila de
     }
     break;
   }
@@ -320,7 +395,7 @@ SEXP get_list_of_rows_with_same_values_in_this_matrix(SEXP x_s, SEXP idrows_s, S
   // Una lista de vectores, cada elemento son las positions de cada grupo
   SEXP result_s = PROTECT(Rf_allocVector(VECSXP, count));protecti++;
   int *restrict element_of_result =
-	(int *)Calloc(nrowsx, int); // Element of the list
+	(int *)R_Calloc(nrowsx, int); // Element of the list
   int ngrp = 0;
   OMP_SIMD
   for (int i = 0; i < nidrows; ++i) {
@@ -355,11 +430,11 @@ SEXP get_list_of_rows_with_same_values_in_this_matrix(SEXP x_s, SEXP idrows_s, S
     sizeofthegroup[grfstpos]--;
   }
 
-  Free(h);
+  R_Free(h);
   //  Free(pans);
-  Free(groupfirstposition);
-  Free(sizeofthegroup);
-  Free(element_of_result);
+  R_Free(groupfirstposition);
+  R_Free(sizeofthegroup);
+  R_Free(element_of_result);
 
   UNPROTECT(protecti);
   return result_s;

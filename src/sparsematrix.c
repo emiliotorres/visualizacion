@@ -1,7 +1,7 @@
 /*
   TITLE:
   AUTHOR: Emilio Torres Manzanera
-  DATE: Time-stamp: <2025-03-04 00:08 emilio on emilio-XPS-15-9570>
+  DATE: Time-stamp: <2025-05-22 10:40 emilio on emilio-despacho>
 */
 
 
@@ -102,7 +102,7 @@ int get_sparsematrix( int row, int col, SparseMatrix* m, int zerovalue) {
 
 // Print the sparse matrix. Just for debugging
 void print_sparsematrix(SparseMatrix* matrix) {
-  Rprintf("Sparse Matrix (%dx%d) with %d elements (closed %d):\n", matrix->nrows, matrix->ncols,matrix->map->size,matrix->map->closed);
+  Rprintf("Sparse Matrix (%dx%d) with %ld elements (closed %d):\n", matrix->nrows, matrix->ncols,matrix->map->size,matrix->map->closed);
   for (int i = 0; i < matrix->nrows; i++) {
     for (int j = 0; j < matrix->ncols; j++) {
       int value = get_sparsematrix( i, j, matrix,0);

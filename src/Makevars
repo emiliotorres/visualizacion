@@ -1,3 +1,11 @@
 all: $(SHLIB)
 	if [ "$(SHLIB)" != "visualizacion$(SHLIB_EXT)" ]; then mv $(SHLIB) visualizacion$(SHLIB_EXT); fi
 	if [ "$(OS)" != "Windows_NT" ] && [ `uname -s` = 'Darwin' ]; then install_name_tool -id visualizacion$(SHLIB_EXT) visualizacion$(SHLIB_EXT); fi
+
+## -- compiling for OpenMP
+PKG_CFLAGS = $($(subst OPENMP,OPENMP_CFLAGS,SHLIB_OPENMP))
+##PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -DSTRICT_R_HEADERS
+## -- using C++ 11
+# CXX_STD = CXX11
+## -- linking for OpenMP
+PKG_LIBS = $(SHLIB_OPENMP_CXXFLAGS)

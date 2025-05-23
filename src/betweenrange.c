@@ -1,6 +1,6 @@
 // Emilio Torres Manzanera
 // University of Oviedo
-// Time-stamp: <2023-12-30 02:09 emilio on emilio-XPS-15-9570>
+// Time-stamp: <2025-05-22 10:59 emilio on emilio-despacho>
 // ============================================================
 
 // ============================================================
@@ -142,7 +142,8 @@ SEXP betweenrangeoo(SEXP xoo_s, SEXP loweroo_s, SEXP upperoobylower_s) {
 
   }
   //Rprintf("Vaciamos: de %d a %d\n", LENGTH(result_s),count);
-  SETLENGTH(result_s,count);
+  //SETLENGTH(result_s,count);
+  Rf_xlengthgets(result_s, count);
   //Rprintf("range: passed setlength\n");
   UNPROTECT(protecti);
   //Rprintf("range: passed unprotect \n");

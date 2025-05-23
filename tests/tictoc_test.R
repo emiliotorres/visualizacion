@@ -1,12 +1,12 @@
 ## #+TITLE: 
 ## #+AUTHOR: Emilio Torres Manzanera
-## #+DATE: Time-stamp: <2025-02-28 21:20 emilio on emilio-XPS-15-9570>
+## #+DATE: Time-stamp: <2025-05-22 12:23 emilio on emilio-despacho>
 ## #+TAGS: 
 ## #+PROPERTY: header-args :results output :exports both :session 
 
 ##
 
-library(hashtable)
+source("header.R")
 
 tic()
 toc()

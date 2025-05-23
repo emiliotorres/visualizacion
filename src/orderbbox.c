@@ -43,6 +43,7 @@ SEXP orderBoundingBoxes(SEXP xleft_s, SEXP ybottom_s, SEXP xright_s, SEXP ytop_s
     if( boxes[i].xleft == NA_INTEGER || boxes[i].ybottom == NA_INTEGER || boxes[i].xright == NA_INTEGER || boxes[i].ytop == NA_INTEGER ||
         ( boxes[i].xleft > boxes[i].xright) || (boxes[i].ybottom < boxes[i].ytop)){
       Rf_error("Verify this bounding box %d: xleft= %d, ybottom= %d, xright= %d, ytop= %d.\n",
+			   boxes[i].index,
                boxes[i].xleft, boxes[i].ybottom, boxes[i].xright, boxes[i].ytop);
     }
     boxes[i].size = 1;
@@ -118,7 +119,7 @@ int sortLexicographyBoundingBoxes(const BoundingBox* page, BoundingBox* boxes, i
   Rprintf("sortLexicographyBoundingBoxes page %d has %d boxes and %d minipages (despues del recursivo)\n",page->index,page->size,n);
   joinFragmentedCharacters(page, boxes,adj, numBoxes);
 
-  Rprintf("sortLexicographyBoundingBoxes despues de tildes\n",n,page->size);
+  Rprintf("sortLexicographyBoundingBoxes despues de tildes %d %d\n",n,page->size);
 
   orderwithinpage(page, (const BoundingBox*) boxes, adj, numBoxes);
 

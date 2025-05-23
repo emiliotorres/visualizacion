@@ -81,22 +81,50 @@ SEXP cbind_matrix(SEXP x_s, SEXP idrowsx_s, SEXP idcolsx_s, SEXP y_s, SEXP idrow
         }
       }
   } break;
-  case STRSXP : {
-    result_s = PROTECT(Rf_allocMatrix(STRSXP, nrowsx, ncolsx+ncolsy));protecti++;
-    const SEXP *restrict x = STRING_PTR(x_s);
-    const SEXP *restrict y = STRING_PTR(y_s);
-    //OMP_PARALLEL_FOR(nth)
-	OMP_SIMD
-      for (R_xlen_t irow = 0; irow < nrowsx; ++irow) {
-        for (R_xlen_t jcol = 0; jcol < ncolsx; ++jcol) {
-          SET_STRING_ELT(result_s, irow+nrowsx*jcol, x[rowsx[irow]+colsx[jcol]*dim0x]);
-        }
-        for (R_xlen_t jcol = 0; jcol < ncolsy; ++jcol) {
-          SET_STRING_ELT(result_s, irow+nrowsx*(jcol+ncolsx), y[rowsy[irow]+colsy[jcol]*dim0y]);
-        }
+  case STRSXP :
 
-      }
-  } break;
+	/* { */
+  /*   result_s = PROTECT(Rf_allocMatrix(STRSXP, nrowsx, ncolsx+ncolsy));protecti++; */
+  /*   const SEXP *restrict x = STRING_PTR(x_s); */
+  /*   const SEXP *restrict y = STRING_PTR(y_s); */
+  /*   //OMP_PARALLEL_FOR(nth) */
+  /* 	OMP_SIMD */
+  /*     for (R_xlen_t irow = 0; irow < nrowsx; ++irow) { */
+  /*       for (R_xlen_t jcol = 0; jcol < ncolsx; ++jcol) { */
+  /*         SET_STRING_ELT(result_s, irow+nrowsx*jcol, x[rowsx[irow]+colsx[jcol]*dim0x]); */
+  /*       } */
+  /*       for (R_xlen_t jcol = 0; jcol < ncolsy; ++jcol) { */
+  /*         SET_STRING_ELT(result_s, irow+nrowsx*(jcol+ncolsx), y[rowsy[irow]+colsy[jcol]*dim0y]); */
+  /*       } */
+
+  /*     } */
+  /* } */
+
+	{
+	result_s = PROTECT(Rf_allocMatrix(STRSXP, nrowsx, ncolsx + ncolsy));
+    protecti++;
+	/* // Get pointers to the character data using API-compliant methods */
+    /* const char **restrict x = (const char **)STRING_ELT(x_s, 0); */
+    /* const char **restrict y = (const char **)STRING_ELT(y_s, 0); */
+
+#pragma omp parallel for
+    for (R_xlen_t irow = 0; irow < nrowsx; ++irow) {
+	  for (R_xlen_t jcol = 0; jcol < ncolsx; ++jcol) {
+		SEXP x_elem = STRING_ELT(x_s, rowsx[irow] + colsx[jcol] * dim0x);
+		// Create a new character string SEXP
+		SEXP elem = Rf_mkChar(CHAR(x_elem));
+		SET_STRING_ELT(result_s, irow + nrowsx * jcol, elem);
+	  }
+	  for (R_xlen_t jcol = 0; jcol < ncolsy; ++jcol) {
+		// Get the string element from y_s
+		SEXP y_elem = STRING_ELT(y_s, rowsy[irow] + colsy[jcol] * dim0y);
+		// Create a new character string SEXP
+		SEXP elem = Rf_mkChar(CHAR(y_elem));
+		SET_STRING_ELT(result_s, irow + nrowsx * (jcol + ncolsx),elem);
+	  }
+    }
+	}
+	break;
   default: // # nocov
     Rf_error("Type %s not supported.", Rf_type2char(TYPEOF(x_s))); // # nocov
   }

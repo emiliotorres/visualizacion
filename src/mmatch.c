@@ -100,7 +100,7 @@ SEXP create_hash_table(SEXP x_s, SEXP idrows_s, SEXP idcols_s) {
   }
   //  Rprintf("M %d K %d %d\n",M,K,log2(M));
   R_xlen_t count = 0;
-  int *restrict h = (int *)Calloc(M, int);
+  int *restrict h = (int *)R_Calloc(M, int);
   // int *restrict pans = (int *)Calloc(nrowsx, int);
   /* int *restrict groupfirstposition = (int *)Calloc(nidrows, int); */
   /* int *restrict sizeofthegroup = (int *)Calloc(nidrows, int); */
@@ -175,34 +175,69 @@ SEXP create_hash_table(SEXP x_s, SEXP idrows_s, SEXP idcols_s) {
     }
     break;
   }
-  case STRSXP: {
-    const SEXP *restrict x = STRING_PTR(x_s);
-    for (R_xlen_t i = 0; i < nidrows; ++i) {
-      R_xlen_t key = 0;
-      for (R_xlen_t j = 0; j < ncols; ++j) {
-        key ^= HASH(((intptr_t)x[idrows[i] + idcols[j] * nrowsx] & 0xffffffff), K) *
-          97 * (j + 1);
-      }
-      id = HASH(key, K);
-      while (h[id]) {
-        for (R_xlen_t j = 0; j < ncols; ++j) {
-          if (x[idrows[h[id] - 1] + idcols[j] * nrowsx] !=
-              x[idrows[i] + idcols[j] * nrowsx]) {
-            goto labelms1; // # nocov
-          }
-        }
-        goto labelms2;
-      labelms1:; // # nocov
-        id++;
-        id %= M; // # nocov
-      }
-      h[id] = (int)i+ 1;
-      count++;
-    labelms2:;
 
+  case STRSXP: {
+    // Get pointers to the character data using API-compliant methods
+    //const char **restrict x = (const char **)STRING_ELT(x_s, 0);
+    for (R_xlen_t i = 0; i < nidrows; ++i) {
+	  R_xlen_t key = 0;
+	  for (R_xlen_t j = 0; j < ncols; ++j) {
+		// Get the string element from x_s using the calculated index
+		SEXP str_elem = STRING_ELT(x_s, idrows[i] + idcols[j] * nrowsx);
+		// Hash the string element
+		key ^= HASH(((intptr_t)CHAR(str_elem)[0] & 0xffffffff), K) * 97 * (j + 1);
+	  }
+	  id = HASH(key, K);
+	  while (h[id]) {
+		for (R_xlen_t j = 0; j < ncols; ++j) {
+		  // Get the string elements for comparison
+		  SEXP str_elem1 = STRING_ELT(x_s, idrows[h[id] - 1] + idcols[j] * nrowsx);
+		  SEXP str_elem2 = STRING_ELT(x_s, idrows[i] + idcols[j] * nrowsx);
+		  // Compare the strings
+		  if (strcmp(CHAR(str_elem1), CHAR(str_elem2)) != 0) {
+			goto labelms1; // # nocov
+		  }
+		}
+		goto labelms2;
+	  labelms1:; // # nocov
+		id++;
+		id %= M; // # nocov
+	  }
+	  h[id] = (int)i + 1;
+	  count++;
+    labelms2:;
     }
     break;
   }
+	
+  /* case STRSXP: { */
+  /*   const SEXP *restrict x = STRING_PTR(x_s); */
+  /*   for (R_xlen_t i = 0; i < nidrows; ++i) { */
+  /*     R_xlen_t key = 0; */
+  /*     for (R_xlen_t j = 0; j < ncols; ++j) { */
+  /*       key ^= HASH(((intptr_t)x[idrows[i] + idcols[j] * nrowsx] & 0xffffffff), K) * */
+  /*         97 * (j + 1); */
+  /*     } */
+  /*     id = HASH(key, K); */
+  /*     while (h[id]) { */
+  /*       for (R_xlen_t j = 0; j < ncols; ++j) { */
+  /*         if (x[idrows[h[id] - 1] + idcols[j] * nrowsx] != */
+  /*             x[idrows[i] + idcols[j] * nrowsx]) { */
+  /*           goto labelms1; // # nocov */
+  /*         } */
+  /*       } */
+  /*       goto labelms2; */
+  /*     labelms1:; // # nocov */
+  /*       id++; */
+  /*       id %= M; // # nocov */
+  /*     } */
+  /*     h[id] = (int)i+ 1; */
+  /*     count++; */
+  /*   labelms2:; */
+
+  /*   } */
+  /*   break; */
+  /* } */
   default: {
     Rf_error("Type '%s' not implemented.", Rf_type2char(TYPEOF(x_s)));
   }
@@ -215,7 +250,7 @@ SEXP create_hash_table(SEXP x_s, SEXP idrows_s, SEXP idcols_s) {
   int* result = INTEGER(result_s);
   memcpy(result, h, M*sizeof(result[0]));
 
-  Free(h);
+  R_Free(h);
 
   SetHashTable( x_s,  idrows_s, idcols_s,  result_s);
 
@@ -347,37 +382,82 @@ SEXP match_matrix(SEXP x_s, SEXP idrowsx_s, SEXP idcolsx_s, SEXP y_s, SEXP idrow
 	  
       break;
     }
-    case STRSXP: {
-      const SEXP *restrict x = STRING_PTR(x_s);
-	  const SEXP *restrict y = STRING_PTR(y_s);
-	  //OMP_PARALLEL_FOR(nth)
-		OMP_SIMD
-      for (R_xlen_t i = 0; i < nidrowsx; ++i) {
-        R_xlen_t key = 0;
-        for (R_xlen_t j = 0; j < ncols; ++j) {
-          key ^= HASH(((intptr_t)x[idrowsx[i] + idcolsx[j] * nrowsx] & 0xffffffff), K) *
-           97 * (j + 1);
-        }
-        id = HASH(key, K);
-        while (h[id]) {
-          for (R_xlen_t j = 0; j < ncols; ++j) {
-            if (y[idrowsy[h[id] - 1] + idcolsy[j] * nrowsy] !=
-                x[idrowsx[i] + idcolsx[j] * nrowsx]) {
-              goto labelms1; // # nocov
-            }
-          }
-          goto labelms2;
-        labelms1:; // # nocov
-          id++;
-          id %= M; // # nocov
-        }
-		result[i] =nomatch;
-		continue;
-     labelms2:;
-		result[i] = h[id];
-      }
-      break;
+
+#include <R.h>
+#include <Rinternals.h>
+#include <R_ext/RS.h> /* For R_xlen_t */
+#include <string.h>   /* For strlen and memcpy */
+#include <omp.h>      /* For OpenMP */
+
+  case STRSXP: {
+    // Get pointers to the character data using API-compliant methods
+    //const char **restrict x = (const char **)STRING_ELT(x_s, 0);
+    //const char **restrict y = (const char **)STRING_ELT(y_s, 0);
+
+#pragma omp simd
+    for (R_xlen_t i = 0; i < nidrowsx; ++i) {
+	  R_xlen_t key = 0;
+	  for (R_xlen_t j = 0; j < ncols; ++j) {
+		// Get the string element from x_s using the calculated index
+		SEXP str_elem = STRING_ELT(x_s, idrowsx[i] + idcolsx[j] * nrowsx);
+		// Hash the string element
+		key ^= HASH(((intptr_t)CHAR(str_elem)[0] & 0xffffffff), K) * 97 * (j + 1);
+	  }
+	  id = HASH(key, K);
+	  while (h[id]) {
+		for (R_xlen_t j = 0; j < ncols; ++j) {
+		  // Get the string elements for comparison
+		  SEXP str_elem1 = STRING_ELT(y_s, idrowsy[h[id] - 1] + idcolsy[j] * nrowsy);
+		  SEXP str_elem2 = STRING_ELT(x_s, idrowsx[i] + idcolsx[j] * nrowsx);
+		  // Compare the strings
+		  if (strcmp(CHAR(str_elem1), CHAR(str_elem2)) != 0) {
+			goto labelms1; // # nocov
+		  }
+		}
+		goto labelms2;
+	  labelms1:; // # nocov
+		id++;
+		id %= M; // # nocov
+	  }
+	  result[i] = nomatch;
+	  continue;
+    labelms2:;
+	  result[i] = h[id];
     }
+    break;
+  }
+	
+    /* case STRSXP: { */
+    /*   const SEXP *restrict x = STRING_PTR(x_s); */
+	/*   const SEXP *restrict y = STRING_PTR(y_s); */
+	/*   //OMP_PARALLEL_FOR(nth) */
+	/* 	OMP_SIMD */
+    /*   for (R_xlen_t i = 0; i < nidrowsx; ++i) { */
+    /*     R_xlen_t key = 0; */
+    /*     for (R_xlen_t j = 0; j < ncols; ++j) { */
+    /*       key ^= HASH(((intptr_t)x[idrowsx[i] + idcolsx[j] * nrowsx] & 0xffffffff), K) * */
+    /*        97 * (j + 1); */
+    /*     } */
+    /*     id = HASH(key, K); */
+    /*     while (h[id]) { */
+    /*       for (R_xlen_t j = 0; j < ncols; ++j) { */
+    /*         if (y[idrowsy[h[id] - 1] + idcolsy[j] * nrowsy] != */
+    /*             x[idrowsx[i] + idcolsx[j] * nrowsx]) { */
+    /*           goto labelms1; // # nocov */
+    /*         } */
+    /*       } */
+    /*       goto labelms2; */
+    /*     labelms1:; // # nocov */
+    /*       id++; */
+    /*       id %= M; // # nocov */
+    /*     } */
+	/* 	result[i] =nomatch; */
+	/* 	continue; */
+    /*  labelms2:; */
+	/* 	result[i] = h[id]; */
+    /*   } */
+    /*   break; */
+    /* } */
   default: {
     Rf_error("Type '%s' not implemented.", Rf_type2char(TYPEOF(x_s)));
   }

@@ -1,7 +1,7 @@
 /*
   TITLE:
   AUTHOR: Emilio Torres Manzanera
-  DATE: Time-stamp: <2025-03-04 11:08 emilio on emilio-XPS-15-9570>
+  DATE: Time-stamp: <2025-05-22 10:27 emilio on emilio-despacho>
 */
 
 
@@ -218,8 +218,8 @@ void print_hashmap(const HashMap* map, int full) {
   }
   Rprintf("HashMap object:\n");
   Rprintf("  Closed: %d\n", map->closed);
-  Rprintf("  Length: %d\n", map->length);
-  Rprintf("  Size: %d\n", map->size);
+  Rprintf("  Length: %ld\n", map->length);
+  Rprintf("  Size: %ld\n", map->size);
   if(full){
     Rprintf("  Key-Value pairs:\n");
     for (int i = 0; i < map->size; i++) {
@@ -446,7 +446,7 @@ SEXP test_key_hashtable() {
   }
 
   Rprintf("\nHash Table Details:\n");
-  Rprintf("  Table Size: %zu\n", ht->size);
+  Rprintf("  Table Size: %u\n", ht->size);
   Rprintf("  M (Table Capacity): %d\n", ht->M);
   Rprintf("  K (Hash Parameter): %d\n", ht->K);
 

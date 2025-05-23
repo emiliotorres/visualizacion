@@ -1,7 +1,7 @@
 /*
   TITLE:
   AUTHOR: Emilio Torres Manzanera
-  DATE: Time-stamp: <2025-03-08 13:34 emilio on emilio-XPS-15-9570>
+  DATE: Time-stamp: <2025-05-22 10:39 emilio on emilio-despacho>
 */
 
 #include "boundingbox.h"
@@ -432,7 +432,7 @@ void ordersubscriptsmathmode( const BoundingBox* page, const BoundingBox* boxes,
 		}
 		Rprintf("common %d newsize %d\n",iscommon,newsize);
 		if(!iscommon) {
-		  Rprintf("dentron common %d newsize %d\n",iscommon,newsize,bunder->indices[ii]);
+		  Rprintf("dentron iscommon %d newsize %d %d\n",iscommon,newsize,bunder->indices[ii]);
 		  newindices[newsize++] = bunder->indices[ii];
 		}
 	  }
