@@ -6,7 +6,7 @@ Authors@R: c(
   person("Alejandro", "Torres García", role = "ctb", email = "iskandertorres23@gmail.com"))
 Depends: R (>= 4.1.0)
 Imports: methods
-Description: Generate the video 
+Description: Generate a video from a png.
 License: GPL-3
 NeedsCompilation: yes
 Author: Emilio Torres Manzanera [aut, cre]

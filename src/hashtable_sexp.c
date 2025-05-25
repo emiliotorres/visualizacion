@@ -1,7 +1,7 @@
 /*
   TITLE: 
   AUTHOR: Emilio Torres Manzanera
-  DATE: Time-stamp: <2025-05-22 12:09 emilio on emilio-despacho>
+  DATE: Time-stamp: <2025-05-25 21:18 emilio on emilio-XPS-15-9570>
 */
 
 #include <stdint.h>    // for uint64_t rather than unsigned long long, intptr_t
@@ -596,7 +596,8 @@ SEXP create_matrix_general_hashtable_SEXP(SEXP x_s, SEXP rowsR_s, SEXP colsR_s, 
 	}
 	case STRSXP: {
 			// Iterate over each string element in x_s in reverse order
-#pragma omp simd
+
+	  OMP_SIMD
 		for (R_xlen_t i = nidrows - 1; i >= 0; i--) {
 		  SEXP temp_s = PROTECT(Rf_allocVector(STRSXP, ncols));
 		  for (R_xlen_t j = 0; j < ncols; ++j) {
@@ -888,7 +889,7 @@ SEXP find_position_matrix_general_hashtable_SEXP(SEXP value_s, SEXP z_s, SEXP ro
     //const char **restrict v = (const char **)STRING_ELT(value_s, 0);
     int K = ht->K;
 
-#pragma omp simd
+	OMP_SIMD
     for (R_xlen_t i = 0; i < nrows; ++i) {
 	  SEXP temp_s = PROTECT(Rf_allocVector(STRSXP, ncols));
 	  for (R_xlen_t j = 0; j < ncols; ++j) {

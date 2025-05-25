@@ -383,18 +383,14 @@ SEXP match_matrix(SEXP x_s, SEXP idrowsx_s, SEXP idcolsx_s, SEXP y_s, SEXP idrow
       break;
     }
 
-#include <R.h>
-#include <Rinternals.h>
-#include <R_ext/RS.h> /* For R_xlen_t */
-#include <string.h>   /* For strlen and memcpy */
-#include <omp.h>      /* For OpenMP */
+
 
   case STRSXP: {
     // Get pointers to the character data using API-compliant methods
     //const char **restrict x = (const char **)STRING_ELT(x_s, 0);
     //const char **restrict y = (const char **)STRING_ELT(y_s, 0);
 
-#pragma omp simd
+	OMP_SIMD
     for (R_xlen_t i = 0; i < nidrowsx; ++i) {
 	  R_xlen_t key = 0;
 	  for (R_xlen_t j = 0; j < ncols; ++j) {
