@@ -1,6 +1,6 @@
 ## #+TITLE:
 ## #+AUTHOR: Emilio Torres Manzanera
-## #+DATE: Time-stamp: <2025-03-08 17:23 emilio on emilio-XPS-15-9570>
+## #+DATE: Time-stamp: <2025-05-26 21:38 emilio on emilio-XPS-15-9570>
 ## #+TAGS:
 ## #+PROPERTY: header-args :results output :exports both :session
 
@@ -65,15 +65,11 @@ crearvideoparaestaslide <- function(slide, directoriodiaposlide,framerate){
     system( instruction    )
     unlink(directoriodiaposlide,recursive=TRUE)
 
-    ## Creamos un video fake de 5 second.
-    ficherovideo <- paste0("video-",slide,"-b.mp4")
-    if(file.exists(ficherovideo))file.remove(ficherovideo)
-    ##system(paste0("ffmpeg -loop 1 -i '",file,"' -c:v libx264 -t 5 -pix_fmt yuv420p ", ficherovideo))
-
+   
 }
 
 
-crearframesyvideo <- function(img,m, slide,nseconds, directoriodiapos = "slides",colortexto=c(898898898,890890890),colorfondo=98098098,precision=1000L,framerate=25L,writePNG){
+crearframesyvideo <- function(img,m, slide,nseconds, writePNG, directoriodiapos = "slides",colortexto=c(898898898,890890890),colorfondo=98098098,precision=1000L,framerate=25L){
     ## Creamos los frames
 
 
@@ -134,14 +130,28 @@ crearframesyvideo <- function(img,m, slide,nseconds, directoriodiapos = "slides"
     }
 
     crearvideoparaestaslide(slide,directoriodiaposlide,framerate)
+
+
 }
 
-
-crearvideo <- function(img,slide,nseconds,...){
+##' .. content for  (no empty lines) ..
+##'
+##' .. content for  ..
+##' @title .
+##' @param img image
+##' @param slide number of image
+##' @param nseconds number of seconds
+##' @param writePNG png::writePNG
+##' @param ... .
+##' @return .
+##' @author emilio
+##' @export 
+##' 
+crearvideo <- function(img,slide,nseconds,writePNG,...){
 
     m <- ordenarpixels(img)
 
-    crearframesyvideo(img,m, slide,nseconds,...)
+    crearframesyvideo(img,m, slide,nseconds,writePNG,...)
 
     return(0)
 

@@ -1,6 +1,6 @@
 ## #+TITLE:
 ## #+AUTHOR: Emilio Torres Manzanera
-## #+DATE: Time-stamp: <2024-01-13 12:30 emilio on emilio-XPS-15-9570>
+## #+DATE: Time-stamp: <2025-05-26 21:15 emilio on emilio-XPS-15-9570>
 ## #+TAGS:
 ## #+PROPERTY: header-args :results output :exports both :session
 
@@ -22,7 +22,7 @@
 ##' @param directoriodiapo directory of diapo
 ##' @return Save a video in the hard disk.
 ##' @author emilio
-##' @export 
+##'
 ##' @examples
 ##' 1
 generatevideoslide <- function(slide, nseconds,readPNG,writePNG,npixelslettermin=15L,directoriodiapo ="slides"){

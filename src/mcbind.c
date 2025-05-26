@@ -107,7 +107,7 @@ SEXP cbind_matrix(SEXP x_s, SEXP idrowsx_s, SEXP idcolsx_s, SEXP y_s, SEXP idrow
     /* const char **restrict x = (const char **)STRING_ELT(x_s, 0); */
     /* const char **restrict y = (const char **)STRING_ELT(y_s, 0); */
 
-#pragma omp parallel for
+	OMP_SIMD 
     for (R_xlen_t irow = 0; irow < nrowsx; ++irow) {
 	  for (R_xlen_t jcol = 0; jcol < ncolsx; ++jcol) {
 		SEXP x_elem = STRING_ELT(x_s, rowsx[irow] + colsx[jcol] * dim0x);
