@@ -1,6 +1,6 @@
 ## #+TITLE:
 ## #+AUTHOR: Emilio Torres Manzanera
-## #+DATE: Time-stamp: <2025-05-26 21:38 emilio on emilio-XPS-15-9570>
+## #+DATE: Time-stamp: <2025-05-27 06:42 emilio on emilio-XPS-15-9570>
 ## #+TAGS:
 ## #+PROPERTY: header-args :results output :exports both :session
 
@@ -58,7 +58,7 @@ crearvideoparaestaslide <- function(slide, directoriodiaposlide,framerate){
     ficherovideo <- paste0("video-",slide,"-a.mp4")
     if(file.exists(ficherovideo))file.remove(ficherovideo)
     if (nzchar(Sys.which("ffmpeg")) == 0) {
-        stop("ffmpeg is not installed. Try in your sistem 'sudo apt install ffmpeg'.")
+        stop("ffmpeg is not installed. Try in your system 'sudo apt install ffmpeg' in Ubuntu, or in MacOs or Windows, see https://cran.r-project.org/web/packages/act/vignettes/install_ffmpeg.html")
     }
     instruction <- paste0("ffmpeg -f image2  -r ",framerate," -i ",directoriodiaposlide,"/data%04d.png   -vf \"pad=ceil(iw/2)*2:ceil(ih/2)*2\" -vcodec libx264 -crf 18  -pix_fmt yuv420p ",ficherovideo)
     cat(instruction,"\n")
@@ -68,8 +68,23 @@ crearvideoparaestaslide <- function(slide, directoriodiaposlide,framerate){
    
 }
 
-
-crearframesyvideo <- function(img,m, slide,nseconds, writePNG, directoriodiapos = "slides",colortexto=c(898898898,890890890),colorfondo=98098098,precision=1000L,framerate=25L){
+##' .. content for  (no empty lines) ..
+##'
+##' .. content for  ..
+##' @title .
+##' @param img image
+##' @param m matrix with detailed information
+##' @param slide number of slide
+##' @param nseconds nseconds
+##' @param directoriodiapos .
+##' @param colortexto .
+##' @param colorfondo .
+##' @param precision .
+##' @param framerate .
+##' @return .
+##' @author emilio
+##' @importFrom png writePNG
+crearframesyvideo <- function(img,m, slide,nseconds, directoriodiapos = "slides",colortexto=c(898898898,890890890),colorfondo=98098098,precision=1000L,framerate=25L){
     ## Creamos los frames
 
 
@@ -139,19 +154,42 @@ crearframesyvideo <- function(img,m, slide,nseconds, writePNG, directoriodiapos 
 ##' .. content for  ..
 ##' @title .
 ##' @param img image
+##' @param slide slide
+##' @param nseconds nseconds
+##' @return .
+##' @author emilio
+##' @importFrom png writePNG
+##'
+crearvideofake <- function(img,slide,nseconds=5){
+      ## Creamos un video fake de 5 second.
+    file <- tempfile(fileext=".png")
+    writePNG(img,file)
+  
+        ficherovideo <- paste0("video-",slide,"-b.mp4")
+        if(file.exists(ficherovideo))file.remove(ficherovideo)
+    system(paste0("ffmpeg -loop 1 -i '",file,"' -c:v libx264 -t 5 -pix_fmt yuv420p ", ficherovideo))
+    if(file.exists(file))file.remove(file)
+}
+
+##' .. content for  (no empty lines) ..
+##'
+##' .. content for  ..
+##' @title .
+##' @param img image
 ##' @param slide number of image
 ##' @param nseconds number of seconds
-##' @param writePNG png::writePNG
 ##' @param ... .
 ##' @return .
 ##' @author emilio
+##' @importFrom png writePNG readPNG
 ##' @export 
 ##' 
-crearvideo <- function(img,slide,nseconds,writePNG,...){
+crearvideo <- function(img,slide,nseconds,...){
 
     m <- ordenarpixels(img)
 
-    crearframesyvideo(img,m, slide,nseconds,writePNG,...)
+    crearframesyvideo(img,m, slide,nseconds,...)
+    crearvideofake(img,slide)
 
     return(0)
 

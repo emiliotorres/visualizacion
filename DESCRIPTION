@@ -5,7 +5,7 @@ Authors@R: c(
   person("Emilio","Torres Manzanera", role=c("aut","cre"), email="torres@uniovi.es"),
   person("Alejandro", "Torres García", role = "ctb", email = "iskandertorres23@gmail.com"))
 Depends: R (>= 4.1.0)
-Imports: methods
+Imports: methods, png
 Description: Generate a video from a png.
 License: GPL-3
 NeedsCompilation: yes
